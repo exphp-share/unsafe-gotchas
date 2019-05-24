@@ -141,8 +141,9 @@ impl<T> RecursiveSpinLock<T> {
 ```
 
 Here, a single thread calling `try_lock()` multiple times on a
-`RecursiveSpinLock` object will get multiple mutable references to its inner
-data, which is illegal in Rust.
+`RecursiveSpinLock` object (or, for that matter, slyly keeping the `&mut T`
+around after calling `unlock()`) can get multiple mutable references to its
+inner data, which is illegal in Rust.
 
 If you really need a recursive lock, you will need to make its API return
 a shared `&` reference, or to turn it into an unsafe API that returns a raw
