@@ -11,7 +11,7 @@ atomic or wrapped in an `UnsafeCell`. Casts from `*const _` to `*mut _`.
 
 **Summary:** Threads usually exchange data by reading and writing to shared
 memory locations. But by default, Rust assumes that non-atomic data accessed via
-a `&` reference cannot change. This assumption must be disabled using an
+a shared `&` reference cannot change. This assumption must be disabled using an
 `UnsafeCell` in objects meant for thread synchronization.
 
 **Incorrect:**
