@@ -32,19 +32,28 @@ impl<T> SpinLock<T> {
         }
     }
 
-    pub fn try_lock(&self) -> Option<&mut T> {
+    pub fn try_lock(&self) -> Option<LockGuard<T>> {
         let was_locked = self.locked.swap(true, Ordering::Acquire);
         if was_locked {
             None
         } else {
-            let data_ptr = &self.data as *const _ as *mut _;
-            Some(unsafe { &mut *data_ptr })
+            Some(LockGuard(&self))
         }
     }
+}
 
-    pub fn unlock(&self) {
-        let was_locked = self.locked.compare_and_swap(true, false, Ordering::Release);
-        assert!(was_locked, "Incorrect lock usage detected!");
+pub struct LockGuard<'a, T>(&'a SpinLock<T>);
+
+impl<'a, T> LockGuard<'a, T> {
+    pub fn get_mut(&mut self) -> &mut T {
+        let data_ptr = &self.0.data as *const _ as *mut _;
+        unsafe { &mut *data_ptr }
+    }
+}
+
+impl<'a, T> Drop for LockGuard<'a, T> {
+    fn drop(&mut self) {
+        self.0.locked.store(false, Ordering::Release);
     }
 }
 ```
@@ -68,18 +77,27 @@ impl<T> SpinLock<T> {
         }
     }
 
-    pub fn try_lock(&self) -> Option<&mut T> {
+    pub fn try_lock(&self) -> Option<LockGuard<T>> {
         let was_locked = self.locked.swap(true, Ordering::Acquire);
         if was_locked {
             None
         } else {
-            Some(unsafe { &mut *self.cell.get() })
+            Some(LockGuard(&self))
         }
     }
+}
 
-    pub fn unlock(&self) {
-        let was_locked = self.locked.compare_and_swap(true, false, Ordering::Release);
-        assert!(was_locked, "Incorrect lock usage detected!");
+pub struct LockGuard<'a, T>(&'a SpinLock<T>);
+
+impl<'a, T> LockGuard<'a, T> {
+    pub fn get_mut(&mut self) -> &mut T {
+        unsafe { &mut *self.0.cell.get() }
+    }
+}
+
+impl<'a, T> Drop for LockGuard<'a, T> {
+    fn drop(&mut self) {
+        self.0.locked.store(false, Ordering::Release);
     }
 }
 ```
@@ -249,18 +267,27 @@ impl<T> SpinLock<T> {
         }
     }
 
-    pub fn try_lock(&self) -> Option<&mut T> {
+    pub fn try_lock(&self) -> Option<LockGuard<T>> {
         let was_locked = self.locked.swap(true, Ordering::Relaxed);
         if was_locked {
             None
         } else {
-            Some(unsafe { &mut *self.cell.get() })
+            Some(LockGuard(&self))
         }
     }
+}
 
-    pub fn unlock(&self) {
-        let was_locked = self.locked.compare_and_swap(true, false, Ordering::Relaxed);
-        assert!(was_locked, "Incorrect lock usage detected!");
+pub struct LockGuard<'a, T>(&'a SpinLock<T>);
+
+impl<'a, T> LockGuard<'a, T> {
+    pub fn get_mut(&mut self) -> &mut T {
+        unsafe { &mut *self.0.cell.get() }
+    }
+}
+
+impl<'a, T> Drop for LockGuard<'a, T> {
+    fn drop(&mut self) {
+        self.0.locked.store(false, Ordering::Relaxed);
     }
 }
 ```
@@ -289,18 +316,27 @@ impl<T> SpinLock<T> {
         }
     }
 
-    pub fn try_lock(&self) -> Option<&mut T> {
+    pub fn try_lock(&self) -> Option<LockGuard<T>> {
         let was_locked = self.locked.swap(true, Ordering::Acquire);
         if was_locked {
             None
         } else {
-            Some(unsafe { &mut *self.cell.get() })
+            Some(LockGuard(&self))
         }
     }
+}
 
-    pub fn unlock(&self) {
-        let was_locked = self.locked.compare_and_swap(true, false, Ordering::Release);
-        assert!(was_locked, "Incorrect lock usage detected!");
+pub struct LockGuard<'a, T>(&'a SpinLock<T>);
+
+impl<'a, T> LockGuard<'a, T> {
+    pub fn get_mut(&mut self) -> &mut T {
+        unsafe { &mut *self.0.cell.get() }
+    }
+}
+
+impl<'a, T> Drop for LockGuard<'a, T> {
+    fn drop(&mut self) {
+        self.0.locked.store(false, Ordering::Release);
     }
 }
 ```
