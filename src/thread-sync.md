@@ -215,7 +215,7 @@ interleavings of thread operations on shared memory.
 
 **Summary:** Modern optimizing compilers and CPUs will add, remove, and reorder
 memory accesses in a fashion that is observable by other threads. It is your
-responsability to instruct the compiler about which reorderings should be
+responsability to tell the compiler which of these alterations should be
 prevented so that your code remains correct.
 
 **Incorrect:**
