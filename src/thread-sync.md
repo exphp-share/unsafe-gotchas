@@ -6,7 +6,7 @@ Concerns for thread synchronization
 Shared mutability without `UnsafeCell`
 --------------------------------------
 
-**What to look for:** Data which may be modified by multiple threads, but isn't
+**What to look for:** Mutable data that is shared by multiple threads, but isn't
 atomic or wrapped in an `UnsafeCell`. Casts from `*const _` to `*mut _`.
 
 **Summary:** Threads usually exchange data by reading and writing to shared
