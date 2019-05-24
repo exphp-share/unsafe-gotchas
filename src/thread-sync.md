@@ -17,6 +17,7 @@ an `UnsafeCell` in objects meant for thread synchronization.
 **Incorrect:**
 
 ```rust
+# fn main() {}
 use std::sync::atomic::{AtomicBool, Ordering};
 
 pub struct SpinLock<T> {
@@ -61,6 +62,7 @@ impl<'a, T> Drop for LockGuard<'a, T> {
 **Correct:**
 
 ```rust
+# fn main() {}
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -118,6 +120,7 @@ single piece of data, which is Undefined Behavior.
 **Incorrect:**
 
 ```rust
+# fn main() {}
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicU32, Ordering};
 
@@ -184,6 +187,7 @@ finished before accessing the shared data.
 **Incorrect:**
 
 ```rust
+# fn main() {}
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -255,6 +259,7 @@ prevented so that your code remains correct.
 **Incorrect:**
 
 ```rust
+# fn main() {}
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -304,6 +309,7 @@ result in data races.
 **Correct:**
 
 ```rust
+# fn main() {}
 use std::cell::UnsafeCell;
 use std::sync::atomic::{AtomicBool, Ordering};
 

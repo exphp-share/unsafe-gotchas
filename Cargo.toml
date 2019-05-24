@@ -1,0 +1,18 @@
+[package]
+name = "unsafe-gotchas-tests"
+version = "0.1.0"
+authors = ["Michael Lamparski <diagonaldevice@gmail.com>"]
+edition = "2018"
+publish = false
+
+[lib]
+path = "dummy-lib.rs"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+skeptic = "0.13"
+
+[dev-dependencies]
+skeptic = "0.13"

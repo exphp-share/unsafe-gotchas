@@ -1,1 +1,8 @@
 book
+
+# ...skeptic creates this?
+/libtest.rmeta
+
+Cargo.lock
+/target
+**/*.rs.bk

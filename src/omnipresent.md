@@ -22,9 +22,10 @@ Drop safety
 **Incorrect**
 
 ```rust
+# fn main() {}
 use std::ptr;
 
-struct ArrayIntoIter<T> {
+pub struct ArrayIntoIter<T> {
     array: [T; 3],
     index: usize,
 }
@@ -50,18 +51,35 @@ For this reason, usage of `std::ptr::read` must almost always be paired together
 
 **Correct**
 
+<!--
+    NOTE: There are tests for this type in the tests/ directory.
+    Please make sure to update those tests with this definition
+-->
+
 ```rust
+# fn main() {}
 use std::mem::ManuallyDrop;
 use std::ptr;
 
-struct ArrayIntoIter<T> {
+pub struct ArrayIntoIter<T> {
     array: [ManuallyDrop<T>; 3],
     index: usize,
 }
 
+impl<T> ArrayIntoIter<T> {
+    pub fn new(array: [T; 3]) -> Self {
+        let [a, b, c] = array;
+        let wrap = ManuallyDrop::new;
+        ArrayIntoIter {
+            array: [wrap(a), wrap(b), wrap(c)],
+            index: 0,
+        }
+    }
+}
+
 impl<T> Iterator for ArrayIntoIter<T> {
     type Item = T;
-    
+
     fn next(&mut self) -> Option<T> {
         match self.index {
             3 => None,
@@ -86,6 +104,9 @@ impl<T> Drop for ArrayIntoIter<T> {
 **Incorrect**
 
 ```rust
+# fn main() {}
+use std::ptr;
+
 pub fn filter_inplace<T>(
     vec: &mut Vec<T>,
     mut pred: impl FnMut(&mut T) -> bool,
@@ -117,6 +138,7 @@ A generalization of the previous point.  You can't even trust `clone` to not pan
 **Incorrect**
 
 ```rust
+# fn main() {}
 pub fn remove_all<T: Eq>(
     vec: &mut Vec<T>,
     target: &T,
@@ -124,6 +146,7 @@ pub fn remove_all<T: Eq>(
     // same as filter_inplace
     // but replace   if pred(&mut vec[read_idx])
     //        with   if &vec[read_idx] == target
+# let _ = (vec, target);
 }
 ```
 
@@ -134,6 +157,7 @@ This particularly nefarious special case of the prior point will leave you teari
 **Still Incorrect:**
 
 ```rust
+# fn main() {}
 /// Marker trait for Eq impls that do not panic.
 ///
 /// # Safety
@@ -145,13 +169,19 @@ pub fn remove_all<T: NoPanicEq>(
     target: &T,
 ) {
     // same as before
+# let _ = (vec, target);
 }
 ```
 
 In this case, the line
 
 ```rust
+# use std::ptr;
+# fn main() {
+# let read_idx = 0;
+# let vec = vec![1];
 drop(unsafe { ptr::read(&vec[read_idx]) });
+# }
 ```
 
 in the `else` block may still panic.  And in this case we should consider ourselves fortunate that the drop is even visible!  Most drops will be invisible, hidden at the end of a scope.
@@ -183,7 +213,9 @@ Yep, these functions are yet another instance of our mortal enemy, `Drop` unsafe
 **Incorrect**
 
 ```rust
-fn call_function<T>(
+# #![allow(unused_assignments)]
+# fn main() {}
+pub fn call_function<T>(
     func: impl FnOnce() -> T,
 ) -> T {
     let mut out: T;
@@ -198,7 +230,8 @@ This function exhibits UB because, at the marked line, the original, uninitializ
 **Still Incorrect**
 
 ```rust
-fn call_function<T>(
+# fn main() {}
+pub fn call_function<T>(
     func: impl FnOnce() -> T,
 ) -> T {
     let mut out: T;
@@ -215,7 +248,9 @@ This function *still* exhibits UB because `func()` can panic, causing the uninit
 **_Still_ incorrect!!**
 
 ```rust
-fn call_function<T: Copy>(
+# #![allow(unused_assignments)]
+# fn main() {}
+pub fn call_function<T: Copy>(
     func: impl FnOnce() -> T,
 ) -> T {
     let mut out: T;
@@ -225,15 +260,25 @@ fn call_function<T: Copy>(
 }
 ```
 
-Here, the `Copy` bound forbids `T` from having a destructor, so we no longer have to worry about drops.  However, this function still exhibits undefined behavior in the case where `T` is uninhabited.
+Here, the `Copy` bound forbids `T` from having a destructor, so we no longer have to worry about drops.  However, this function still exhibits undefined behavior in the case where `T` is uninhabited:
 
-```rust
+```rust,no_run
+# #![allow(unused_assignments)]
+# fn call_function<T: Copy>(
+#     func: impl FnOnce() -> T,
+# ) -> T {
+#     let mut out: T;
+#     out = unsafe { std::mem::uninitialized() };
+#     out = func(); 
+#     out
+# }
+#
 /// A type that is impossible to construct.
 #[derive(Copy, Clone)]
 enum Never {}
 
 fn main() {
-    call_function::<Never>(|| panic!("Hello, world!"));
+    let _: Never = call_function(|| panic!("Hello, world!"));
 }
 ```
 

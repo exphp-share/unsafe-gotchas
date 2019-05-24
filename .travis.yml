@@ -13,4 +13,4 @@ before_script:
   - cargo install-update -a
 
 script:
-  - mdbook build . && mdbook test .
+  - mdbook build && cargo test

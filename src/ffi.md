@@ -13,18 +13,31 @@ enums are not FFI-safe
 **Incorrect:**
 
 ```rust
+# fn main() {}
 #[repr(u16)]
 pub enum Mode {
     Read = 0,
     Write = 1,
 }
 
-extern "C" fn rust_from_c(mode: Mode) { ... }
+#[allow(unused)]
+extern "C" fn rust_from_c(mode: Mode) {
+    // ...
+}
 ```
 
 **Also incorrect:**
-```rust
-extern "C" fn c_from_rust(mode: *mut Mode);
+```rust,no_run
+# #[repr(u16)]
+# pub enum Mode {
+#     Read = 0,
+#     Write = 1,
+# }
+#
+extern "C" {
+    fn c_from_rust(mode: *mut Mode);
+}
+
 fn main() {
     let mut mode = Mode::Read;
     unsafe { c_from_rust(&mut mode); }
@@ -44,7 +57,7 @@ I think you'll be hard pressed to find any C API function that mutates a `char *
 
 **Incorrect**
 
-```rust
+```rust,no_run
 extern crate libc;
 
 use std::ffi::{CString, CStr};
@@ -99,8 +112,12 @@ Just as an aside, there's another footgun here.  If I had written:
 
 **Incorrect:**
 
-```rust
-let delim = CString::new(" ").as_ptr();
+```rust,no_run
+# use std::ffi::CString;
+# fn main() {
+let delim = CString::new(" ").unwrap().as_ptr();
+# let _ = delim;
+# }
 ```
 
 the buffer would have been freed immediately.
