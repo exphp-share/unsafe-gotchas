@@ -185,18 +185,27 @@ impl<T> Racey<T> {
         unsafe { &*self.cell.get() }
     }
 
-    pub fn try_start_write(&self) -> Option<&mut T> {
+    pub fn try_write(&self) -> Option<WriteGuard<T>> {
         let was_writing = self.writing.swap(true, Ordering::Acquire);
         if was_writing {
             None
         } else {
-            Some(unsafe { &mut *self.cell.get() })
+            Some(WriteGuard(&self))
         }
     }
+}
 
-    pub fn end_write(&self) {
-        let was_writing = self.writing.compare_and_swap(true, false, Ordering::Release);
-        assert!(was_writing, "Incorrect writer usage detected!");
+pub struct WriteGuard<'a, T>(&'a Racey<T>);
+
+impl<'a, T> WriteGuard<'a, T> {
+    pub fn get_mut(&mut self) -> &mut T {
+        unsafe { &mut *self.0.cell.get() }
+    }
+}
+
+impl<'a, T> Drop for WriteGuard<'a, T> {
+    fn drop(&mut self) {
+        self.0.writing.store(false, Ordering::Release);
     }
 }
 ```
