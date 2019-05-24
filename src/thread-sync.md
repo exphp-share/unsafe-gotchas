@@ -198,6 +198,7 @@ impl<T> Racey<T> {
 pub struct WriteGuard<'a, T>(&'a Racey<T>);
 
 impl<'a, T> WriteGuard<'a, T> {
+    // Notice the use of &mut self, which prevents multiple &mut T to be created
     pub fn get_mut(&mut self) -> &mut T {
         unsafe { &mut *self.0.cell.get() }
     }
