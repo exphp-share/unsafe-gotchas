@@ -200,8 +200,8 @@ impl<T> Racey<T> {
         }
     }
 
-    pub fn read(&self) -> &T {
-        unsafe { &*self.cell.get() }
+    pub fn read(&self) -> *const T {
+        self.cell.get()
     }
 
     pub fn try_write(&self) -> Option<WriteGuard<T>> {
@@ -234,6 +234,10 @@ Although this design correctly prevents multiple writers from acquiring an
 `&mut` to the data at the same time (which, as we've seen, is UB even if they
 don't use those references), it does not prevents readers from observing the
 writes of the writers.
+
+For that matter, simply modifying `read` to return a `&T` instead of a
+`*const T` would be Undefined Behavior per se, because `&mut` and `&` references
+are not allowed to coexist.
 
 <a id="insufficient-synchronization"></a>
 
