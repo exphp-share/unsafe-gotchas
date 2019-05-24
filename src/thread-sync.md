@@ -145,7 +145,8 @@ Here, a single thread calling `try_lock()` multiple times on a
 data, which is illegal in Rust.
 
 If you really need a recursive lock, you will need to make its API return
-a shared `&` reference or a raw `*mut` pointer (possibly wrapped in `NonNull`).
+a shared `&` reference, or to turn it into an unsafe API that returns a raw
+`*mut` pointer (possibly wrapped in `NonNull`).
 
 <a id="data-races"></a>
 
